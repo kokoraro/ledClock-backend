@@ -26,7 +26,3 @@ class Canvas:
 
     def serialize_canvas(self) -> str:
         return json.dumps(self.__dict__)
-
-    def clear_canvas(self) -> None:
-        for index, _pixel in enumerate(self.pixels):
-            self.pixels[index]["rgb"] = [0, 0, 0]
