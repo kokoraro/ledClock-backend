@@ -2,8 +2,9 @@ import json
 import random
 from models.matrix import Pixel, Canvas
 
-# from rgbmatrix import RGBMatrix, RGBMatrixOptions
-from RGBMatrixEmulator import RGBMatrix, RGBMatrixOptions
+from rgbmatrix import RGBMatrix, RGBMatrixOptions
+
+# from RGBMatrixEmulator import RGBMatrix, RGBMatrixOptions
 import time
 import sys
 
