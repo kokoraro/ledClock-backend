@@ -23,7 +23,7 @@ def get_health():
     return {"status": "up"}
 
 
-# @app.get("/randomize-matrix")
+@app.get("/randomize-matrix")
 def get_randomize_matrix():
     matrix_controller.randomize_matrix()
     return {"status": "success"}
@@ -79,4 +79,4 @@ if __name__ == "__main__":
     # httpd.server_close()
     # logging.info("Stopping httpd...\n")
 
-    uvicorn.run(app, host="0.0.0.0", port=8000, limit_concurrency=1)
+    uvicorn.run(app, host="0.0.0.0", port=8000)

@@ -1,61 +1,34 @@
+import json
 import random
-from typing import List
+from models.matrix import Pixel, Canvas
 
 # from rgbmatrix import RGBMatrix, RGBMatrixOptions
-
 from RGBMatrixEmulator import RGBMatrix, RGBMatrixOptions
 import time
 import sys
 
-# import curses
+fifo_path = "/tmp/led-matrix-fifo"
+
 
 # Constants
 WHITE_PIXEL = (255, 255, 255)
 GREEN_PIXEL = (0, 255, 0)
 
 
-class RGB:
-    def __init__(self, r=255, g=255, b=255):
-        self.r = r
-        self.g = g
-        self.b = b
-
-
-class Position:
-    def __init__(self, x=0, y=0):
-        self.x = x
-        self.y = y
-
-
-class Pixel:
-    def __init__(self, rgb: RGB = RGB(), position: Position = Position()):
-        self.rgb = rgb
-        self.position = position
-
-
-def RandomPixelPositions(pixelCount: int, width: int, height: int) -> List[Pixel]:
+def RandomPixelPositions(pixelCount: int, width: int, height: int) -> list[Pixel]:
     # TODO: Don't allow spawns in same position
-    pixelPositions: List[Pixel] = []
+    pixelPositions: list[Pixel] = []
 
     for x in range(pixelCount):
         randomX = random.randrange(width)
         randomY = random.randrange(height)
-        pixelPositions.append(Pixel(RGB(), Position(randomX, randomY)))
+        pixelPositions.append(Pixel(rgb=[255, 255, 255], position=[randomX, randomY]))
 
     return pixelPositions
 
 
-# def cursesTerminal():
-#     screen = curses.initscr()
-#     screen.addstr("Hello, World!")
-#     screen.refresh()
-#     screen.getch()
-#     curses.endwin()
-
-
 def main():
-    # cursesTerminal()
-
+    # Setup matrix
     random.seed()
     options = RGBMatrixOptions()
     options.rows = 32
@@ -65,31 +38,37 @@ def main():
     options.limit_refresh_rate_hz = 70
 
     matrix = RGBMatrix(options=options)
-    canvas = matrix.CreateFrameCanvas()
+    local_matrix_canvas = matrix.CreateFrameCanvas()
     matrix.brightness = 80
-    # matrix.Fill(255, 0, 0)
 
+    # Begin Loop
     try:
         print("Press CTRL-C to stop.")
         while True:
-            pixels = RandomPixelPositions(30, matrix.width, matrix.height)
-            matrix.Clear()
-            pixel: Pixel
+            # Read in serialized canvas and deserialize it
+            with open(fifo_path, "r") as f:
+                canvas: Canvas = json.loads(f.read())
 
-            for pixel in pixels:
-                canvas.SetPixel(
-                    pixel.position.x,
-                    pixel.position.y,
-                    pixel.rgb.r,
-                    pixel.rgb.g,
-                    pixel.rgb.b,
+            # print(canvas["pixels"])
+
+            # Reset matrix
+            # matrix.Clear()
+
+            # Loop over pixels and set them on the matrix
+            for pixel in canvas["pixels"]:
+                local_matrix_canvas.SetPixel(
+                    pixel["position"][0],
+                    pixel["position"][1],
+                    pixel["rgb"][0],
+                    pixel["rgb"][1],
+                    pixel["rgb"][2],
                 )
 
-            matrix.SwapOnVSync(canvas)
+            # End loop
+            matrix.SwapOnVSync(local_matrix_canvas)
             time.sleep(0.1)
 
     except KeyboardInterrupt:
-        # curses.endwin()
         sys.exit(0)
 
 
