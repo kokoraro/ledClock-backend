@@ -48,7 +48,17 @@ class MatrixController:
 
         self._update_matrix()
 
+    def set_matrix(self, matrix: list[Pixel]):
+        self.canvas.clear_canvas()
+
+        for pixel in matrix:
+            self.canvas.set_pixel(pixel)
+
+        self._update_matrix()
+
     def _update_matrix(self):
+        # TODO: Change this to REDIS as FIFO is blocking
+
         global lock
         # Serialize the canvas and save it to tmp directory
         with lock:
