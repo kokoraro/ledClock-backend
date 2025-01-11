@@ -75,7 +75,7 @@ def main():
 
             # End loop
             matrix.SwapOnVSync(local_matrix_canvas)
-            time.sleep(0.1)
+            # time.sleep(0.1)
 
     except KeyboardInterrupt:
         sys.exit(0)
