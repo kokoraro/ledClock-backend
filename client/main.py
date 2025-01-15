@@ -37,7 +37,7 @@ def main():
     options.cols = 64
     options.hardware_mapping = "regular"
     options.show_refresh_rate = True
-    options.limit_refresh_rate_hz = 30
+    options.limit_refresh_rate_hz = 120
     options.gpio_slowdown = 2
 
     matrix = RGBMatrix(options=options)
