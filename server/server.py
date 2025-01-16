@@ -9,10 +9,7 @@ from controllers.matrix_controller import MatrixController
 app = FastAPI()
 matrix_controller = MatrixController()
 
-origins = [
-    "http://localhost:3001",
-    "http://192.168.86.*",
-]
+origins = ["*"]
 
 app.add_middleware(
     CORSMiddleware,
