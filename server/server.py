@@ -45,7 +45,7 @@ def get_randomize_matrix():
 @app.post("/matrix")
 def post_matrix(matrix: list[Pixel]):
     matrix_controller.set_matrix(matrix)
-    return {"received matrix": matrix}
+    return "Sent matrix succesfully"
 
 
 if __name__ == "__main__":
