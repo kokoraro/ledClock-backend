@@ -37,8 +37,10 @@ def main():
     options.cols = 64
     options.hardware_mapping = "regular"
     options.show_refresh_rate = True
-    options.limit_refresh_rate_hz = 120
+    options.limit_refresh_rate_hz = 70
     options.gpio_slowdown = 2
+    options.pwm_dither_bits = 1
+    options.pwm_lsb_nanoseconds = 50
 
     matrix = RGBMatrix(options=options)
     local_matrix_canvas = matrix.CreateFrameCanvas()
