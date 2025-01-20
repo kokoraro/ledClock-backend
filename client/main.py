@@ -1,5 +1,6 @@
 import json
 import random
+import time
 from models.matrix import Pixel, Canvas
 
 from rgbmatrix import RGBMatrix, RGBMatrixOptions
@@ -38,9 +39,9 @@ def main():
     options.hardware_mapping = "regular"
     options.show_refresh_rate = True
     options.limit_refresh_rate_hz = 70
-    options.gpio_slowdown = 2
-    options.pwm_dither_bits = 1
-    options.pwm_lsb_nanoseconds = 50
+    # options.gpio_slowdown = 2
+    # options.pwm_dither_bits = 1
+    # options.pwm_lsb_nanoseconds = 50
 
     matrix = RGBMatrix(options=options)
     local_matrix_canvas = matrix.CreateFrameCanvas()
@@ -52,6 +53,7 @@ def main():
     try:
         print("Press CTRL-C to stop.")
         while True:
+            time.sleep(0.1)
             # Read in serialized canvas and deserialize it
             with open(fifo_path, "r") as f:
                 currentCanvas = json.loads(f.read())
@@ -77,7 +79,6 @@ def main():
 
             # End loop
             matrix.SwapOnVSync(local_matrix_canvas)
-            # time.sleep(0.1)
 
     except KeyboardInterrupt:
         sys.exit(0)
