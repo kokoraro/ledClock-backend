@@ -58,6 +58,7 @@ class MatrixController:
 
     def _update_matrix(self):
         # TODO: Change this to REDIS as FIFO is blocking
+        logging.info("Updating matrix")
 
         global lock
         # Serialize the canvas and save it to tmp directory
