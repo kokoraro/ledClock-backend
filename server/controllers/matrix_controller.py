@@ -2,8 +2,8 @@
 import logging
 import os
 import random
+import sys
 from threading import Lock
-from venv import logger
 
 # For a live local LED
 from models.matrix import Pixel, Canvas
@@ -13,6 +13,8 @@ fifo_path = "/tmp/led-matrix-fifo"
 lock = Lock()
 
 logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
+logger.addHandler(logging.StreamHandler(sys.stdout))
 
 
 class MatrixController:
