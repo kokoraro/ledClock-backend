@@ -1,4 +1,5 @@
 import logging
+import sys
 import uvicorn
 
 from fastapi import FastAPI
@@ -9,8 +10,11 @@ from controllers.matrix_controller import MatrixController
 
 app = FastAPI()
 matrix_controller = MatrixController()
-logging.basicConfig(level=logging.INFO)
+
 logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
+logger.addHandler(logging.StreamHandler(sys.stdout))
+logger.info("API is starting up")
 
 origins = ["*"]
 
