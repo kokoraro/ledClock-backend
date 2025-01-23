@@ -1,3 +1,4 @@
+import logging
 import uvicorn
 
 from fastapi import FastAPI
@@ -8,6 +9,8 @@ from controllers.matrix_controller import MatrixController
 
 app = FastAPI()
 matrix_controller = MatrixController()
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 origins = ["*"]
 
@@ -46,5 +49,4 @@ def post_matrix(matrix: list[Pixel]):
 
 
 if __name__ == "__main__":
-    # logging.basicConfig(level=logging.INFO)
     uvicorn.run(app, host="0.0.0.0", port=8000)
