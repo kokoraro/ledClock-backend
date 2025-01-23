@@ -52,5 +52,23 @@ def post_matrix(matrix: list[Pixel]):
     return "Sent matrix succesfully"
 
 
+# Save matrix
+@app.post("/save-matrix")
+def post_save_matrix(matrix: list[Pixel]):
+    return matrix_controller.save_matrix(matrix)
+
+
+# Get matrix
+@app.get("/get-matrix")
+def get_matrix(timestamp: str):
+    return matrix_controller.get_matrix(timestamp)
+
+
+# Get matrixes
+@app.get("/get-matrixes")
+def get_matrixes(page: int, limit: int):
+    return matrix_controller.get_matrixes(page, limit)
+
+
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)
