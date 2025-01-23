@@ -10,11 +10,15 @@ from models.matrix import Pixel, Canvas
 import time
 
 fifo_path = "/tmp/led-matrix-fifo"
+saved_matrices_path = "/tmp/saved-matrices"
+
+MAX_LIMIT = 10
+
 lock = Lock()
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
-logger.addHandler(logging.StreamHandler(sys.stdout))
+# logger.addHandler(logging.StreamHandler(sys.stdout))
 
 
 class MatrixController:
@@ -67,6 +71,60 @@ class MatrixController:
         end_time = time.time()
         elapsed_time = end_time - start_time
         logger.info(f"set_matrix took {elapsed_time} seconds to run")
+
+    def save_matrix(self, matrix: list[Pixel]):
+        # Get the current date and time as a string
+        current_time: str = time.strftime("%Y-%m-%d-%H-%M-%S", time.localtime())
+
+        # Check if saved_matrices_path exists, if not create it
+        if not os.path.exists(saved_matrices_path):
+            os.makedirs(saved_matrices_path)
+
+        # Save the matrix to a file with time as the name
+        with open(f"{saved_matrices_path}/{current_time}.json", "w") as f:
+            f.write(str(matrix))
+
+        return {"filename": current_time}
+
+    def get_matrix(self, timestamp: str):
+        # Check if the file exists
+        if not os.path.exists(f"{saved_matrices_path}/{timestamp}.json"):
+            return "File not found", 404
+
+        # Read the matrix from the file
+        with open(f"{saved_matrices_path}/{timestamp}.json", "r") as f:
+            return f.read()
+
+    def get_matrixes(self, page: int, limit: int):
+        # Cap limit at MAX_LIMIT
+        if limit > MAX_LIMIT:
+            limit = MAX_LIMIT
+
+        # Check if directory exists
+        if not os.path.exists(saved_matrices_path):
+            return "Directory not found", 404
+
+        # Get a list of all the saved matrices
+        saved_matrices = os.listdir(saved_matrices_path)
+
+        # Sort the list of matrices by date
+        saved_matrices.sort()
+
+        # Reverse the list so the most recent matrix is first
+        saved_matrices.reverse()
+
+        # Get the start and end index of the matrices we want to return
+        start_index = page * limit
+        end_index = start_index + limit
+
+        # Calculate the number of pages
+        number_of_pages = len(saved_matrices) // limit
+
+        # Return the matrices
+        return {
+            "matrixes": saved_matrices[start_index:end_index],
+            "pages": number_of_pages,
+        }
 
     def _update_matrix(self):
         # TODO: Change this to REDIS as FIFO is blocking
