@@ -1,8 +1,8 @@
 # For if we're emulating an LED
+import json
 import logging
 import os
 import random
-import sys
 from threading import Lock
 
 # For a live local LED
@@ -82,9 +82,32 @@ class MatrixController:
 
         # Save the matrix to a file with time as the name
         with open(f"{saved_matrices_path}/{current_time}.json", "w") as f:
-            f.write(str(matrix))
+            f.write(json.dumps(matrix))
 
         return {"filename": current_time}
+
+    def delete_matrix(self, timestamp: str):
+        # Check if the file exists
+        if not os.path.exists(f"{saved_matrices_path}/{timestamp}.json"):
+            return "File not found", 404
+
+        # Delete the file
+        os.remove(f"{saved_matrices_path}/{timestamp}.json")
+
+        return "File deleted"
+
+    def load_matrix(self, timestamp: str):
+        # Check if the file exists
+        if not os.path.exists(f"{saved_matrices_path}/{timestamp}.json"):
+            return "File not found", 404
+
+        # Read the matrix from the file
+        with open(f"{saved_matrices_path}/{timestamp}.json", "r") as f:
+            matrix = json.loads(f.read())
+
+        self.set_matrix(matrix)
+
+        return "Matrix loaded"
 
     def get_matrix(self, timestamp: str):
         # Check if the file exists
