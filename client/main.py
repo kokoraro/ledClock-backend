@@ -1,12 +1,16 @@
 import json
+import os
+import sys
 import random
 import time
 from models.matrix import Pixel, Canvas
 
-from rgbmatrix import RGBMatrix, RGBMatrixOptions
+# Use emulator if running locally
+if os.getenv("LOCAL_DEV"):
+    from RGBMatrixEmulator import RGBMatrix, RGBMatrixOptions
+else:
+    from rgbmatrix import RGBMatrix, RGBMatrixOptions
 
-# from RGBMatrixEmulator import RGBMatrix, RGBMatrixOptions
-import sys
 
 fifo_path = "/tmp/led-matrix-fifo"
 previousCanvas: Canvas = Canvas(width=64, height=32, brightness=80, pixels=[])
