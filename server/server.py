@@ -58,6 +58,18 @@ def post_save_matrix(matrix: list[Pixel]):
     return matrix_controller.save_matrix(matrix)
 
 
+# Load matrix
+@app.post("/load-matrix")
+def post_load_matrix(timestamp: str):
+    return matrix_controller.load_matrix(timestamp)
+
+
+# Delete matrix
+@app.post("/delete-matrix")
+def delete_matrix(timestamp: str):
+    return matrix_controller.delete_matrix(timestamp)
+
+
 # Get matrix
 @app.get("/get-matrix")
 def get_matrix(timestamp: str):
