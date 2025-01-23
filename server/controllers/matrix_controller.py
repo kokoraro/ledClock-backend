@@ -3,12 +3,15 @@ import logging
 import os
 import random
 from threading import Lock
+from venv import logger
 
 # For a live local LED
 from models.matrix import Pixel, Canvas
 
 fifo_path = "/tmp/led-matrix-fifo"
 lock = Lock()
+
+logger = logging.getLogger(__name__)
 
 
 class MatrixController:
@@ -58,7 +61,7 @@ class MatrixController:
 
     def _update_matrix(self):
         # TODO: Change this to REDIS as FIFO is blocking
-        logging.info("Updating matrix")
+        logger.info("Updating matrix")
 
         global lock
         # Serialize the canvas and save it to tmp directory
