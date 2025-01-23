@@ -7,6 +7,7 @@ from venv import logger
 
 # For a live local LED
 from models.matrix import Pixel, Canvas
+import time
 
 fifo_path = "/tmp/led-matrix-fifo"
 lock = Lock()
@@ -29,7 +30,7 @@ class MatrixController:
             os.mkfifo(fifo_path)
 
     def randomize_matrix(self):
-        _max_pixels = self.canvas.height * self.canvas.width
+        _max_pixels = 32
         self.canvas.clear_canvas()
 
         # Pick a random number between 0 and the max number of pixels
@@ -52,12 +53,18 @@ class MatrixController:
         self._update_matrix()
 
     def set_matrix(self, matrix: list[Pixel]):
+        start_time = time.time()
+
         self.canvas.clear_canvas()
 
         for pixel in matrix:
             self.canvas.set_pixel(pixel)
 
         self._update_matrix()
+
+        end_time = time.time()
+        elapsed_time = end_time - start_time
+        logger.info(f"set_matrix took {elapsed_time} seconds to run")
 
     def _update_matrix(self):
         # TODO: Change this to REDIS as FIFO is blocking
