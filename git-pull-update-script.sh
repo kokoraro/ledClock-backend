@@ -7,7 +7,7 @@
 old_hash=$(git -C ~/LED_Clock rev-parse HEAD)
 
 # Pull the latest code from the git repository
-git pull -C ~/LED_Clock
+git -C ~/LED_Clock pull
 
 # Store the new commit hash
 new_hash=$(git -C ~/LED_Clock rev-parse HEAD)
