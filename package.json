@@ -1,0 +1,64 @@
+{
+  "name": "hashmind",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev -p 2025",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "dbPush": "prisma db push && npx prisma generate",
+    "format": "npx prettier --write './**/*.{jsx,js,ts,tsx,json}'"
+  },
+  "prisma": {
+    "schema": "./src/prisma/schema.prisma"
+  },
+  "dependencies": {
+    "@clerk/nextjs": "^4.29.4",
+    "@notionhq/client": "^2.2.14",
+    "@prisma/client": "^5.8.1",
+    "@radix-ui/react-switch": "^1.0.3",
+    "@tanstack/react-query": "^5.17.15",
+    "@upstash/redis": "^1.28.2",
+    "axios": "^1.6.5",
+    "class-variance-authority": "^0.7.0",
+    "cloudinary": "^1.41.3",
+    "clsx": "^2.1.0",
+    "dayjs": "^1.11.10",
+    "inngest": "^3.11.0",
+    "lucide-react": "^0.312.0",
+    "nanoid": "^5.0.4",
+    "next": "14.0.4",
+    "notion-to-md": "^3.1.1",
+    "nprogress": "^0.2.0",
+    "openai": "^4.25.0",
+    "prisma": "^5.8.1",
+    "react": "^18",
+    "react-dom": "^18",
+    "react-hot-toast": "^2.4.1",
+    "recorder-js": "^1.0.7",
+    "siriwave": "^2.4.0",
+    "slugify": "^1.6.6",
+    "svix": "^1.15.0",
+    "tailwind-merge": "^2.2.0",
+    "tailwindcss-animate": "^1.0.7",
+    "zod": "^3.22.4"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "@types/nprogress": "^0.2.3",
+    "@types/react": "^18",
+    "@types/react-dom": "^18",
+    "@types/react-speech-recognition": "^3.9.5",
+    "@types/recorder-js": "^1.0.4",
+    "autoprefixer": "^10.0.1",
+    "postcss": "^8",
+    "prettier": "^3.2.4",
+    "prop-types": "^15.8.1",
+    "tailwindcss": "^3.3.0",
+    "typescript": "^5"
+  },
+  "engines": {
+    "node": ">=18.17.0"
+  }
+}
