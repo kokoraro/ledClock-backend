@@ -1,0 +1,150 @@
+generator client {
+    provider = "prisma-client-js"
+    // previewFeatures = ["postgresqlExtensions"]
+}
+
+datasource db {
+    provider     = "mongodb"
+    url          = env("DATABASE_URL")
+    relationMode = "prisma"
+    // extensions = [pgvector(map: "vector")]
+}
+
+enum GptStyle {
+    author_style
+    casual_conversation
+    tutorials_and_guide
+    informative_and_newsy
+}
+
+enum DefaultAuthorName {
+    malcolm_gladwell
+    dan_ariely
+    brene_brown
+    jane_austen
+    gabriel_garcia_marquez
+    seth_godin
+}
+
+enum BlogPreference {
+    draft
+    publish
+}
+
+enum QueueStatus {
+    pending
+    completed
+    failed
+}
+
+enum MessageUserType {
+    user
+    assistant
+}
+
+enum IntegrationType {
+    notion
+}
+
+model Users {
+    id                 String  @id @map("_id")
+    userId             String  @unique @default(cuid())
+    email              String  @unique
+    username           String
+    image              String
+    notion_database_id String?
+
+    settings        Settings?
+    queue           Queues[]
+    subqueue        SubQueues[]
+    chathistory     ChatHistory[]
+    integration     Integration[]
+    integrationPage IntegrationPage[]
+
+    @@map("users")
+}
+
+model Settings {
+    id                    String             @id @map("_id")
+    userId                String             @unique
+    gpt_style             GptStyle           @default(author_style)
+    default_author_name   DefaultAuthorName? @default(malcolm_gladwell)
+    publishing_preference BlogPreference     @default(draft)
+    hashnode_token        String             @default("")
+    hashnode_pub_id       String             @default("")
+
+    user Users @relation(fields: [userId], references: [userId], onDelete: Cascade)
+
+    @@map("settings")
+}
+
+model Queues {
+    id          String @id @default(cuid()) @map("_id")
+    userId      String
+    title       String
+    description String
+    // status      QueueStatus @default(pending)
+    jobs        Int
+
+    user     Users       @relation(fields: [userId], references: [userId])
+    subqueue SubQueues[]
+
+    @@map("queues")
+}
+
+model SubQueues {
+    id         String      @id @default(cuid()) @map("_id")
+    queueId    String
+    userId     String
+    identifier String?
+    status     QueueStatus @default(pending)
+    title      String
+    message    String
+
+    user  Users  @relation(fields: [userId], references: [userId])
+    queue Queues @relation(fields: [queueId], references: [id], onDelete: Cascade)
+
+    @@map("subqueues")
+}
+
+model IntegrationPage {
+    id         String          @id @default(cuid()) @map("_id")
+    userId     String
+    pageId     String          @unique
+    pageUrl    String? // notion page url
+    article_id String? // hashnode article id
+    type       IntegrationType @default(notion)
+    hn_cuid    String? // hashnode editor id
+    author     String? // blog author (would be added later on during sync)
+
+    createdAt DateTime @default(now())
+
+    user Users @relation(fields: [userId], references: [userId])
+
+    @@map("integration_page")
+}
+
+model ChatHistory {
+    id        String           @id @default(cuid()) @map("_id")
+    userId    String
+    message   String
+    type      MessageUserType?
+    createdAt DateTime         @default(now())
+
+    user Users @relation(fields: [userId], references: [userId])
+
+    @@map("chathistory")
+}
+
+model Integration {
+    id     String          @id @default(cuid()) @map("_id")
+    userId String
+    type   IntegrationType @default(notion)
+    token  String
+
+    createdAt DateTime @default(now())
+
+    user Users @relation(fields: [userId], references: [userId])
+
+    @@map("integration")
+}
