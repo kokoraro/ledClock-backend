@@ -6,11 +6,12 @@ import random
 from threading import Lock
 
 # For a live local LED
-from models.matrix import Pixel, Canvas
+from models.matrix import Pixel, Canvas, Animation
 import time
 
 fifo_path = "/tmp/led-matrix-fifo"
 saved_matrices_path = "/tmp/saved-matrices"
+saved_animations_path = "/tmp/saved-animations"
 
 MAX_LIMIT = 10
 
@@ -35,6 +36,7 @@ class MatrixController:
         if not os.path.exists(fifo_path):
             os.mkfifo(fifo_path)
 
+    # Generate random pixels and set them on the matrix
     def randomize_matrix(self):
         _max_pixels = 32
         self.canvas.clear_canvas()
@@ -58,6 +60,7 @@ class MatrixController:
 
         self._update_matrix()
 
+    # Set the matrix to the given matrix
     def set_matrix(self, matrix: list[Pixel]):
         start_time = time.time()
 
@@ -72,6 +75,7 @@ class MatrixController:
         elapsed_time = end_time - start_time
         logger.info(f"set_matrix took {elapsed_time} seconds to run")
 
+    # Save the matrix to a file with the current date and time as the name
     def save_matrix(self, matrix: list[Pixel]):
         # Get the current date and time as a string
         current_time: str = time.strftime("%Y-%m-%d-%H-%M-%S", time.localtime())
@@ -86,6 +90,28 @@ class MatrixController:
 
         return {"filename": current_time}
 
+    def save_animation(self, animation: Animation):
+        # Get the current date and time as a string
+        current_time: str = time.strftime("%Y-%m-%d-%H-%M-%S", time.localtime())
+
+        # Check if animations path exists, if not create it
+        if not os.path.exists(saved_animations_path):
+            os.makedirs(saved_animations_path)
+
+        # create folder for animation
+        if not os.path.exists(f"{saved_animations_path}/{current_time}"):
+            os.makedirs(f"{saved_animations_path}/{current_time}")
+        else:
+            return "Animation already exists", 400
+
+        # Loop through frames and save them as individual files in new directory
+        for index, frame in enumerate(animation["frames"]):
+            with open(f"{saved_animations_path}/{current_time}/{index}.json", "w") as f:
+                f.write(json.dumps(frame))
+
+        return {"filename": current_time}
+
+    # Delete the matrix with the given timestamp name
     def delete_matrix(self, timestamp: str):
         # Check if the file exists
         if not os.path.exists(f"{saved_matrices_path}/{timestamp}.json"):
@@ -96,6 +122,7 @@ class MatrixController:
 
         return "File deleted"
 
+    # Load the matrix with the given timestamp name and set it
     def load_matrix(self, timestamp: str):
         # Check if the file exists
         if not os.path.exists(f"{saved_matrices_path}/{timestamp}.json"):
@@ -109,6 +136,7 @@ class MatrixController:
 
         return "Matrix loaded"
 
+    # Get the matrix with the given timestamp name and return it
     def get_matrix(self, timestamp: str):
         # Check if the file exists
         if not os.path.exists(f"{saved_matrices_path}/{timestamp}.json"):
@@ -118,6 +146,7 @@ class MatrixController:
         with open(f"{saved_matrices_path}/{timestamp}.json", "r") as f:
             return f.read()
 
+    # Get a list of all the saved matrices
     def get_matrixes(self, page: int, limit: int):
         # Cap limit at MAX_LIMIT
         if limit > MAX_LIMIT:
@@ -149,6 +178,7 @@ class MatrixController:
             "pages": number_of_pages,
         }
 
+    # Update the matrix locally
     def _update_matrix(self):
         # TODO: Change this to REDIS as FIFO is blocking
         logger.info("Updating matrix")

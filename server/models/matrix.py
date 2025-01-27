@@ -3,11 +3,33 @@ import json
 from typing_extensions import TypedDict
 
 
+# Pixel model
 class Pixel(TypedDict):
     rgb: list[int]  # RGB values
     position: list[int]  # X and Y position
 
 
+# Matrix model
+class Matrix(TypedDict):
+    pixels: list[Pixel]
+    brightness: int
+
+
+# Frame model
+class Frame(TypedDict):
+    data: Matrix
+    frame_length: int
+    index: int
+
+
+# Animation model
+class Animation(TypedDict):
+    frames: list[Frame]
+    # name: str
+    loop: bool
+
+
+# Canvas Class
 class Canvas:
     def __init__(
         self, width: int, height: int, brightness: int, pixels: list[Pixel]
