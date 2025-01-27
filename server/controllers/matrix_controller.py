@@ -12,9 +12,8 @@ from fastapi import HTTPException
 from models.matrix import Pixel, Canvas, Animation
 import time
 
-fifo_path = "/tmp/led-matrix-fifo"
-saved_matrices_path = "/tmp/saved-matrices"
-saved_animations_path = "/tmp/saved-animations"
+saved_matrices_path = "saved-matrices"
+saved_animations_path = "saved-animations"
 
 MAX_LIMIT = 10
 
@@ -34,10 +33,6 @@ class MatrixController:
         for x in range(self.canvas.width):
             for y in range(self.canvas.height):
                 self.canvas.pixels.append(Pixel(rgb=[0, 0, 0], position=[x, y]))
-
-        # Create fifo pipe
-        if not os.path.exists(fifo_path):
-            os.mkfifo(fifo_path)
 
     # Generate random pixels and set them on the matrix
     def randomize_matrix(self):
