@@ -1,8 +1,7 @@
 import errno
-import json
+import orjson as json
 import logging
 import os
-from re import M
 import sys
 import random
 import time
@@ -99,10 +98,12 @@ def matrix_loop(
     currentCanvas: PixelCanvas,
 ) -> PixelCanvas:
     time.sleep(0.1)
+
     # Compare the canvas to the previous canvas contents, if same then skip
-    if currentCanvas.get_pixels() == previousCanvas.get_pixels():
+    if currentCanvas.get_hash() == previousCanvas.get_hash():
         return previousCanvas
 
+    logging.info("Displaying new matrix")
     # Reset matrix
     # matrix.Clear()
 
@@ -116,7 +117,7 @@ def matrix_loop(
             pixel["rgb"][2],
         )
 
-    previousCanvas = currentCanvas
+    previousCanvas.copy(currentCanvas)
 
     # End loop
     matrix_driver.SwapOnVSync(matrix_driver_canvas)
@@ -188,6 +189,7 @@ def main():
             )
 
             if current_canvas is None:
+                logging.info("current_canvas is None")
                 current_canvas = previous_canvas
 
             previous_canvas = matrix_loop(

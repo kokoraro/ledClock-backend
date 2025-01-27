@@ -8,6 +8,7 @@ fastapi = "*"
 uvicorn = "*"
 pillow = "*"
 rgbmatrixemulator = "*"
+orjson = "*"
 
 [dev-packages]
 

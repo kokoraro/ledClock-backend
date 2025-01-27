@@ -1,9 +1,12 @@
 # For if we're emulating an LED
-import json
+import orjson as json
 import logging
 import os
 import random
+import socket
 from threading import Lock
+
+from fastapi import HTTPException
 
 # For a live local LED
 from models.matrix import Pixel, Canvas, Animation
@@ -58,22 +61,34 @@ class MatrixController:
         for _pixel in _pixels:
             self.canvas.set_pixel(_pixel)
 
-        self._update_matrix()
+        # Send to driver
+        driver_status = self._update_matrix()
+
+        if driver_status != 200:
+            raise HTTPException(status_code=500, detail="Error updating matrix")
+
+        return "Successfully randomized matrix", 200
 
     # Set the matrix to the given matrix
     def set_matrix(self, matrix: list[Pixel]):
         start_time = time.time()
 
+        # Set local canvas
         self.canvas.clear_canvas()
-
         for pixel in matrix:
             self.canvas.set_pixel(pixel)
 
-        self._update_matrix()
+        # Send to driver
+        driver_status = self._update_matrix()
+        if driver_status != 200:
+            raise HTTPException(status_code=500, detail="Error updating matrix")
 
+        # Log driver speed
         end_time = time.time()
         elapsed_time = end_time - start_time
         logger.info(f"set_matrix took {elapsed_time} seconds to run")
+
+        return "Successfully set matrix", 200
 
     # Save the matrix to a file with the current date and time as the name
     def save_matrix(self, matrix: list[Pixel]):
@@ -179,12 +194,43 @@ class MatrixController:
         }
 
     # Update the matrix locally
-    def _update_matrix(self):
+    def _update_matrix(self) -> bool:
         # TODO: Change this to REDIS as FIFO is blocking
         logger.info("Updating matrix")
 
         global lock
         # Serialize the canvas and save it to tmp directory
         with lock:
-            with open(fifo_path, "w") as f:
-                f.write(self.canvas.serialize_canvas())
+            # Open socket and conenct to server
+            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+                s.connect(("localhost", 8888))
+
+                # serialized_matrix = json.dumps(self.canvas.serialize_canvas()).encode(
+                #     "utf-8"
+                # )
+
+                # TODO: HAVE SOME LOGIC FOR HANDLING MATRIX VS ANIMATION
+                # ALSO BRIGHTNESS ETC...
+                test_request = {
+                    "data_type": "matrix",
+                    "data": {
+                        "pixels": self.canvas.get_pixels(),
+                        "brightness": self.canvas.brightness,
+                    },
+                }
+
+                serialized_request = json.dumps(test_request)
+
+                # Send length of serialized matrix
+                s.sendall(len(serialized_request).to_bytes(4, byteorder="big"))
+
+                # Send matrix to server
+                s.sendall(serialized_request)
+
+                logger.info("Sent matrix to server")
+
+                # Receive error code status from server
+                response = s.recv(4)
+                response = int.from_bytes(response, byteorder="big")
+
+                return response
