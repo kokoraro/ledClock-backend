@@ -1,4 +1,5 @@
 # Matrix model
+from __future__ import annotations
 import datetime
 import json
 from typing import Union
@@ -122,11 +123,23 @@ class PixelCanvas:
     def get_pixels(self) -> list[Pixel]:
         return self.pixels
 
+    def set_brightness(self, brightness: int) -> None:
+        self.brightness = brightness
+
+    def copy(self, other: PixelCanvas) -> None:
+        self.width = other.width
+        self.height = other.height
+        self.brightness = other.brightness
+        self.pixels = other.pixels.copy()
+
     def set_pixels(self, pixels: list[Pixel]) -> None:
         self.pixels = pixels
 
     def serialize_canvas(self) -> str:
         return json.dumps(self.__dict__)
+
+    def get_hash(self) -> str:
+        return hash(self.serialize_canvas())
 
     def clear_canvas(self) -> None:
         for index, _pixel in enumerate(self.pixels):
