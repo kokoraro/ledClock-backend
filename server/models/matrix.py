@@ -46,6 +46,9 @@ class Canvas:
                 self.pixels[index] = pixel
                 return
 
+    def get_pixels(self) -> list[Pixel]:
+        return self.pixels
+
     def serialize_canvas(self) -> str:
         return json.dumps(self.__dict__)
 
