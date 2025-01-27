@@ -44,15 +44,13 @@ def get_health():
 
 @app.get("/randomize-matrix", tags=["matrix"])
 def get_randomize_matrix():
-    matrix_controller.randomize_matrix()
-    return {"status": "success"}
+    return matrix_controller.randomize_matrix()
 
 
 # Matrix endpoint
 @app.post("/matrix", tags=["matrix"])
 def post_matrix(matrix: list[Pixel]):
-    matrix_controller.set_matrix(matrix)
-    return "Sent matrix succesfully"
+    return matrix_controller.set_matrix(matrix)
 
 
 # Save matrix
