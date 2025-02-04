@@ -119,6 +119,10 @@ class MatrixController:
             with open(f"{saved_animations_path}/{current_time}/{index}.json", "w") as f:
                 f.write(json.dumps(frame))
 
+        # Save a meta file as well which meta information about the animation
+        with open(f"{saved_animations_path}/{current_time}/meta.json", "w") as f:
+            f.write(json.dumps({"loop": animation["loop"]}))
+
         return {"filename": current_time}
 
     # Delete the matrix with the given timestamp name

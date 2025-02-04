@@ -81,18 +81,24 @@ class DataReceiver(threading.Thread):
             return (False, "data not in data")
 
         # Validate matrix request type
-        if data["data_type"] == "matrix":
-            if not self.validate_matrix(data["data"]):
-                return (False, "data is not a valid matrix")
-        # Validate animation request type
-        elif data["data_type"] == "animation":
-            if not self.validate_animation(data["data"]):
-                return (False, "data is not a valid animation")
-        else:
-            return (False, "data_type is not valid")
-
+        match data["data_type"]:
+            case "matrix":
+                if not self.validate_matrix(data["data"]):
+                    return (False, "data is not a valid matrix request")
+            case "load_matrix":
+                if not self.validate_load_matrix(data["data"]):
+                    return (False, "data is not a valid load_matrix request")
+            case "animation":
+                if not self.validate_animation(data["data"]):
+                    return (False, "data is not a valid animation request")
+            case "load_animation":
+                if not self.validate_load_animation(data["data"]):
+                    return (False, "data is not a valid load_animation request")
+            case _:
+                return (False, "data_type is not valid")
         return (True, "Data is valid")
 
+    # Validate request to load an animation from request
     def validate_matrix(self, matrix) -> bool:
         if "pixels" not in matrix:
             return False
@@ -102,11 +108,29 @@ class DataReceiver(threading.Thread):
 
         return True
 
+    # Validate Request to load a matrix from file
+    def validate_load_matrix(self, request_data) -> bool:
+        if "brightness" not in request_data:
+            return False
+
+        if "timestamp" not in request_data:
+            return False
+
+        return True
+
+    # Validate request to load an animation from request
     def validate_animation(self, animation) -> bool:
         if "frames" not in animation:
             return False
 
         if "loop" not in animation:
+            return False
+
+        return True
+
+    # Validate request to load an animation from file
+    def validate_load_animation(self, request_data) -> bool:
+        if "timestamp" not in request_data:
             return False
 
         return True
