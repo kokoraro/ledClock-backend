@@ -52,12 +52,16 @@ class MatrixController:
             _pixel["position"][0] = random.randrange(self.canvas.width)
             _pixel["position"][1] = random.randrange(self.canvas.height)
 
-        # Loop over the pixels and set them on the matrix
-        for _pixel in _pixels:
-            self.canvas.set_pixel(_pixel)
-
         # Send to driver
-        driver_status = self._update_matrix()
+        driver_status = self._update_matrix(
+            {
+                "data_type": "matrix",
+                "data": {
+                    "pixels": _pixels,
+                    "brightness": self.canvas.brightness,
+                },
+            }
+        )
 
         if driver_status != 200:
             raise HTTPException(status_code=500, detail="Error updating matrix")
@@ -69,12 +73,20 @@ class MatrixController:
         start_time = time.time()
 
         # Set local canvas
-        self.canvas.clear_canvas()
-        for pixel in matrix:
-            self.canvas.set_pixel(pixel)
+        # self.canvas.clear_canvas()
+        # for pixel in matrix:
+        #     self.canvas.set_pixel(pixel)
 
         # Send to driver
-        driver_status = self._update_matrix()
+        driver_status = self._update_matrix(
+            {
+                "data_type": "matrix",
+                "data": {
+                    "pixels": matrix,
+                    "brightness": self.canvas.brightness,
+                },
+            }
+        )
         if driver_status != 200:
             raise HTTPException(status_code=500, detail="Error updating matrix")
 
@@ -95,7 +107,7 @@ class MatrixController:
             os.makedirs(saved_matrices_path)
 
         # Save the matrix to a file with time as the name
-        with open(f"{saved_matrices_path}/{current_time}.json", "w") as f:
+        with open(f"{saved_matrices_path}/{current_time}.json", "wb") as f:
             f.write(json.dumps(matrix))
 
         return {"filename": current_time}
@@ -116,11 +128,13 @@ class MatrixController:
 
         # Loop through frames and save them as individual files in new directory
         for index, frame in enumerate(animation["frames"]):
-            with open(f"{saved_animations_path}/{current_time}/{index}.json", "w") as f:
+            with open(
+                f"{saved_animations_path}/{current_time}/{index}.json", "wb"
+            ) as f:
                 f.write(json.dumps(frame))
 
         # Save a meta file as well which meta information about the animation
-        with open(f"{saved_animations_path}/{current_time}/meta.json", "w") as f:
+        with open(f"{saved_animations_path}/{current_time}/meta.json", "wb") as f:
             f.write(json.dumps({"loop": animation["loop"]}))
 
         return {"filename": current_time}
@@ -137,18 +151,25 @@ class MatrixController:
         return "File deleted"
 
     # Load the matrix with the given timestamp name and set it
-    def load_matrix(self, timestamp: str):
+    def load_matrix(self, timestamp: str, brightness: int = 80):
         # Check if the file exists
         if not os.path.exists(f"{saved_matrices_path}/{timestamp}.json"):
             return "File not found", 404
 
-        # Read the matrix from the file
-        with open(f"{saved_matrices_path}/{timestamp}.json", "r") as f:
-            matrix = json.loads(f.read())
+        driver_status = self._update_matrix(
+            {
+                "data_type": "load_matrix",
+                "data": {
+                    "timestamp": timestamp,
+                    "brightness": brightness,
+                },
+            }
+        )
 
-        self.set_matrix(matrix)
+        if driver_status != 200:
+            raise HTTPException(status_code=500, detail="Error updating matrix")
 
-        return "Matrix loaded"
+        return "Successfully Loaded matrix", 200
 
     # Get the matrix with the given timestamp name and return it
     def get_matrix(self, timestamp: str):
@@ -193,8 +214,7 @@ class MatrixController:
         }
 
     # Update the matrix locally
-    def _update_matrix(self) -> bool:
-        # TODO: Change this to REDIS as FIFO is blocking
+    def _update_matrix(self, request: dict) -> bool:
         logger.info("Updating matrix")
 
         global lock
@@ -204,21 +224,17 @@ class MatrixController:
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
                 s.connect(("localhost", 8888))
 
-                # serialized_matrix = json.dumps(self.canvas.serialize_canvas()).encode(
-                #     "utf-8"
-                # )
-
                 # TODO: HAVE SOME LOGIC FOR HANDLING MATRIX VS ANIMATION
                 # ALSO BRIGHTNESS ETC...
-                test_request = {
-                    "data_type": "matrix",
-                    "data": {
-                        "pixels": self.canvas.get_pixels(),
-                        "brightness": self.canvas.brightness,
-                    },
-                }
+                # test_request = {
+                #     "data_type": "matrix",
+                #     "data": {
+                #         "pixels": self.canvas.get_pixels(),
+                #         "brightness": self.canvas.brightness,
+                #     },
+                # }
 
-                serialized_request = json.dumps(test_request)
+                serialized_request = json.dumps(request)
 
                 # Send length of serialized matrix
                 s.sendall(len(serialized_request).to_bytes(4, byteorder="big"))
@@ -226,7 +242,7 @@ class MatrixController:
                 # Send matrix to server
                 s.sendall(serialized_request)
 
-                logger.info("Sent matrix to server")
+                logger.info("Sent request to driver")
 
                 # Receive error code status from server
                 response = s.recv(4)
