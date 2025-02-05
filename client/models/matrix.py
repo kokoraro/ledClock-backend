@@ -56,7 +56,7 @@ class LoadAnimation(TypedDict):
 # Action request model
 class ActionRequest(TypedDict):
     data_type: DATA_TYPE
-    data: Union[Matrix, Animation]
+    data: Union[Matrix, Animation, LoadMatrix, LoadAnimation]
 
 
 class CurrentAction:
@@ -65,18 +65,23 @@ class CurrentAction:
         self.data: Union[Matrix, Animation] = data
         self.current_frame: int = 0
         self.time_to_change_frame: datetime.datetime = datetime.datetime.now()
+        self.last_handled_action_request: bytes = b""
 
     def change_action(
         self,
         action: DATA_TYPE,
         data: Union[Matrix, Animation, LoadMatrix, LoadAnimation],
     ) -> None:
-        if action in [DATA_TYPE.LOAD_MATRIX, DATA_TYPE.LOAD_ANIMATION]:
+        logging.info(f"Changing action to {action}")
+
+        if action in [DATA_TYPE.LOAD_MATRIX.value, DATA_TYPE.LOAD_ANIMATION.value]:
             # Got a request to load from saved files, let's convert it
             if self.convert_action(action, data):
+                logging.info("Successfully converted action")
                 return
 
             # Failed to convert action, so let's keep the status quo
+            logging.warn("Failed to convert action")
             return
 
         self.action = action
@@ -87,12 +92,13 @@ class CurrentAction:
     def convert_action(
         self, action: DATA_TYPE, data: Union[LoadMatrix, LoadAnimation]
     ) -> bool:
-        if action == DATA_TYPE.LOAD_MATRIX:
+        if action == DATA_TYPE.LOAD_MATRIX.value:
             # Attempt to load matrix from file
             try:
-                with open(f"saved_matrices/{data['timestamp']}.json", "r") as f:
+                with open(f"saved-matrices/{data['timestamp']}.json", "r") as f:
                     matrix = json.loads(f.read())
             except FileNotFoundError:
+                logging.warn(f"Failed to find matrix '{data['timestamp']}.json'")
                 return False
 
             # NOTE: Old format has just pixel data in a list, new format has brightness too in the form of an object
@@ -111,7 +117,7 @@ class CurrentAction:
             self.data = matrix
             return True
 
-        if action == DATA_TYPE.LOAD_ANIMATION:
+        if action == DATA_TYPE.LOAD_ANIMATION.value:
             # Attempt to load animation from file
 
             # Validate that the animation folder exists
@@ -156,7 +162,11 @@ class CurrentAction:
 
             self.action = DATA_TYPE.ANIMATION
             self.data = built_animation
-            return
+            return True
+
+        # Unknown action
+        logging.warn(f"Unknown action {action}")
+        return False
 
     def _next_frame(self) -> None:
         if self.action != DATA_TYPE.ANIMATION:
@@ -199,6 +209,12 @@ class CurrentAction:
 
     def get_action_type(self) -> DATA_TYPE:
         return self.action
+
+    def get_last_handled_action_request(self) -> bytes:
+        return self.last_handled_action_request
+
+    def set_last_handled_action_request(self, request: bytes) -> None:
+        self.last_handled_action_request = request
 
     def serialize_current_action(self) -> str:
         return json.dumps(self.__dict__)
