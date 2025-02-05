@@ -1,4 +1,3 @@
-import errno
 import orjson as json
 import logging
 import os
@@ -28,8 +27,6 @@ else:
 WHITE_PIXEL = (255, 255, 255)
 GREEN_PIXEL = (0, 255, 0)
 
-FIFO_PATH = "/tmp/led-matrix-fifo"
-
 
 def RandomPixelPositions(pixelCount: int, width: int, height: int) -> list[Pixel]:
     # TODO: Don't allow spawns in same position
@@ -41,28 +38,6 @@ def RandomPixelPositions(pixelCount: int, width: int, height: int) -> list[Pixel
         pixelPositions.append(Pixel(rgb=[255, 255, 255], position=[randomX, randomY]))
 
     return pixelPositions
-
-
-def read_fifo() -> Optional[PixelCanvas]:
-    buffer = ""
-    io = os.open(FIFO_PATH, os.O_RDONLY | os.O_NONBLOCK)
-    try:
-        chunk = os.read(io, 65536)
-        buffer += chunk.decode("utf-8")
-        while "\n" in buffer:
-            line, buffer = buffer.split("\n", 1)
-            json_object = json.loads(line)
-            logging.info(
-                f"Received matrix from server, {len(line)} bytes, {len(json_object)} pixels"
-            )
-            yield json_object  # Use yield to return each JSON object as it's read
-    except OSError as err:
-        if err.errno == errno.EAGAIN or err.errno == errno.EWOULDBLOCK:
-            return None
-        else:
-            raise
-
-    return None
 
 
 def matrix_init() -> (RGBMatrix, Canvas):
@@ -143,7 +118,12 @@ def update_action(
     if "data_type" not in request:
         return current_action
 
+    # Check if the action is already being handled
+    if current_action.get_last_handled_action_request() == json.dumps(request):
+        return current_action
+
     current_action.change_action(action=request["data_type"], data=request["data"])
+    current_action.set_last_handled_action_request(json.dumps(request))
 
     return current_action
 
