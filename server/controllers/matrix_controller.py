@@ -1,4 +1,5 @@
 # For if we're emulating an LED
+import math
 import orjson as json
 import logging
 import os
@@ -187,6 +188,9 @@ class MatrixController:
         if limit > MAX_LIMIT:
             limit = MAX_LIMIT
 
+        if limit < 1:
+            limit = 1
+
         # Check if directory exists
         if not os.path.exists(saved_matrices_path):
             return "Directory not found", 404
@@ -205,7 +209,7 @@ class MatrixController:
         end_index = start_index + limit
 
         # Calculate the number of pages
-        number_of_pages = len(saved_matrices) // limit
+        number_of_pages = math.ceil(len(saved_matrices) / limit)
 
         # Return the matrices
         return {
