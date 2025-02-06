@@ -79,8 +79,8 @@ def matrix_loop(
         return previousCanvas
 
     logging.info("Displaying new matrix")
-    # Reset matrix
-    # matrix.Clear()
+
+    matrix_driver.Clear()
 
     # Loop over pixels and set them on the matrix
     for pixel in currentCanvas.get_pixels():
