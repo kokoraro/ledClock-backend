@@ -113,6 +113,24 @@ class MatrixController:
 
         return {"filename": current_time}
 
+    def set_animation(self, animation: Animation):
+        # Send to driver
+        driver_status = self._update_matrix(
+            {
+                "data_type": "animation",
+                "data": {
+                    "frames": animation["frames"],
+                    "loop": animation["loop"],
+                    "brightness": self.canvas.brightness,
+                },
+            }
+        )
+
+        if driver_status != 200:
+            raise HTTPException(status_code=500, detail="Error updating matrix")
+
+        return "Successfully set animation", 200
+
     def save_animation(self, animation: Animation):
         # Get the current date and time as a string
         current_time: str = time.strftime("%Y-%m-%d-%H-%M-%S", time.localtime())

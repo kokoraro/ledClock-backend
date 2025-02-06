@@ -5,7 +5,7 @@ import uvicorn
 from fastapi import APIRouter, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from models.matrix import Pixel
+from models.matrix import Animation, Pixel
 from controllers.matrix_controller import MatrixController
 
 app = FastAPI()
@@ -59,8 +59,13 @@ def post_save_matrix(matrix: list[Pixel]):
     return matrix_controller.save_matrix(matrix)
 
 
-@v1_router.post("/save-animation", tags=["saving"])
-def post_save_animation(animation: list[Pixel]):
+@app.post("/animation", tags=["animation"])
+def post_animation(animation: Animation):
+    return matrix_controller.set_animation(animation)
+
+
+@app.post("/save-animation", tags=["saving"])
+def post_save_animation(animation: Animation):
     return matrix_controller.save_animation(animation)
 
 

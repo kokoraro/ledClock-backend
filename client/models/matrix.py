@@ -84,10 +84,23 @@ class CurrentAction:
             logging.warn("Failed to convert action")
             return
 
-        self.action = action
         self.data = data
         self.current_frame = 0
-        self.time_to_change_frame = datetime.datetime.now()
+
+        # Got a request to set the matrix or animation
+        # Convert action to DATA_TYPE
+        match action:
+            case DATA_TYPE.MATRIX.value:
+                self.action = DATA_TYPE.MATRIX
+                self.time_to_change_frame = datetime.datetime.now()
+            case DATA_TYPE.ANIMATION.value:
+                self.action = DATA_TYPE.ANIMATION
+                self.time_to_change_frame = (
+                    datetime.datetime.now()
+                    + datetime.timedelta(
+                        seconds=self.data["frames"][self.current_frame]["frame_length"]
+                    )
+                )
 
     def convert_action(
         self, action: DATA_TYPE, data: Union[LoadMatrix, LoadAnimation]
@@ -175,17 +188,22 @@ class CurrentAction:
         self.current_frame += 1
 
         # Check if we need to loop the animation
-        if self.current_frame >= len(self.data["frames"]) and self.data["loop"]:
-            self.current_frame = 0
-            self.time_to_change_frame = datetime.datetime.now() + datetime.timedelta(
-                milliseconds=self.data["frames"][self.current_frame]["frame_length"]
-            )
-            return
-
-        # We don't need to loop, so keep it on the last frame
         if self.current_frame >= len(self.data["frames"]):
-            self.current_frame = len(self.data["frames"]) - 1
-            return
+            if not self.data["loop"]:
+                # We're not looping so keep on the last frame
+                self.current_frame = len(self.data["frames"]) - 1
+                self.time_to_change_frame = (
+                    datetime.datetime.now() + datetime.timedelta(seconds=3600)
+                )
+                return
+
+            # loop back to start
+            self.current_frame = 0
+
+        # Set time to change frame
+        self.time_to_change_frame = datetime.datetime.now() + datetime.timedelta(
+            seconds=self.data["frames"][self.current_frame]["frame_length"]
+        )
 
     def loop(self) -> None:
         # Only animations needs a loop atm
@@ -196,6 +214,7 @@ class CurrentAction:
         if datetime.datetime.now() < self.time_to_change_frame:
             return
 
+        logging.info(f"Changing frame! Current frame: {self.current_frame}")
         # Change frame
         self._next_frame()
 
