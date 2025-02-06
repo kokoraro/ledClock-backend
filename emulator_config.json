@@ -4,7 +4,7 @@
     "pixel_style": "square",
     "display_adapter": "browser",
     "suppress_font_warnings": false,
-    "suppress_adapter_load_errors": false,
+    "suppress_adapter_load_errors": true,
     "browser": {
       "_comment": "For use with the browser adapter only.",
       "port": 7777,
