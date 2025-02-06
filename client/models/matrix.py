@@ -98,7 +98,9 @@ class CurrentAction:
                 self.time_to_change_frame = (
                     datetime.datetime.now()
                     + datetime.timedelta(
-                        seconds=self.data["frames"][self.current_frame]["frame_length"]
+                        milliseconds=self.data["frames"][self.current_frame][
+                            "frame_length"
+                        ]
                     )
                 )
 
@@ -202,7 +204,7 @@ class CurrentAction:
 
         # Set time to change frame
         self.time_to_change_frame = datetime.datetime.now() + datetime.timedelta(
-            seconds=self.data["frames"][self.current_frame]["frame_length"]
+            milliseconds=self.data["frames"][self.current_frame]["frame_length"]
         )
 
     def loop(self) -> None:
