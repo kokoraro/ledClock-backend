@@ -1,0 +1,13 @@
+[project]
+name = "led-clock-backend"
+version = "1.0.0"
+description = "Contains the backend and the driver intended to run on the raspberry pi clock"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "fastapi>=0.115.6",
+    "orjson>=3.10.12",
+    "pillow>=11.0.0",
+    "rgbmatrixemulator>=0.11.6",
+    "uvicorn>=0.34.0",
+]
