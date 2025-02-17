@@ -9,8 +9,8 @@ on:
 # Defines two custom environment variables for the workflow. These are used for the Container registry domain, and a name for the Docker image that this workflow builds.
 env:
   REGISTRY: ghcr.io
-  DRIVER_IMAGE_NAME: led-driver
-  SERVER_IMAGE_NAME: led-server
+  DRIVER_IMAGE_NAME: ${{github.repository}}-driver
+  SERVER_IMAGE_NAME: ${{github.repository}}-server
 
 # There is a single job in this workflow. It's configured to run on the latest available version of Ubuntu.
 jobs:
@@ -93,6 +93,8 @@ jobs:
           platforms: linux/amd64,linux/arm64
           tags: ${{ steps.driver-meta.outputs.tags }}
           labels: ${{ steps.driver-meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
       
       # Build and push the Server image
       - name: Build and push Server image
@@ -104,6 +106,8 @@ jobs:
           platforms: linux/amd64,linux/arm64
           tags: ${{ steps.server-meta.outputs.tags }}
           labels: ${{ steps.server-meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
       # Creates a release in the repository, using the version number that was generated in the "Get next version" step.
       - name: Create a release
