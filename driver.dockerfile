@@ -36,6 +36,7 @@ RUN apk update && apk add \
     freetype-dev \
     gcc \
     musl-dev \
+    python3-dev \
     && rm -vrf /var/cache/apk/*
 
 # Create docker user & group
