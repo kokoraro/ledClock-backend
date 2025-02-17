@@ -17,7 +17,7 @@
 	// "forwardPorts": [],
 
 	// Use 'postCreateCommand' to run commands after the container is created.
-	// "postCreateCommand": "pip3 install --user -r requirements.txt",
+	"postCreateCommand": "curl -LsSf https://astral.sh/uv/install.sh | sh",
 
 	"features": {
 		"ghcr.io/devcontainers/features/docker-outside-of-docker": {}
