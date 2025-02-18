@@ -14,14 +14,10 @@ env:
 
 # There is a single job in this workflow. It's configured to run on the latest available version of Ubuntu.
 jobs:
-  build-and-push-image:
+  version-increment:
     runs-on: ubuntu-latest
-    # Sets the permissions granted to the `GITHUB_TOKEN` for the actions in this job.
-    permissions:
-      contents: write
-      packages: write
-      actions: write
-      #
+    outputs:
+      version: ${{ steps.version.outputs.version }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -31,6 +27,17 @@ jobs:
         id: version
         with:
           scheme: conventional_commits
+
+  build-and-push-arm64-images:
+    runs-on: self-hosted
+    needs: version-increment
+    permissions:
+      contents: write
+      packages: write
+      actions: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
@@ -56,12 +63,12 @@ jobs:
             # set latest tag for default branch
             type=raw,value=latest,enable={{is_default_branch}}
             # set version tag for all branches
-            type=raw,value=${{ steps.version.outputs.version }}
+            type=raw,value=${{ needs.version-increment.outputs.version }}
           labels: |
             org.opencontainers.image.title=LED Clock driver
             org.opencontainers.image.description=LED Clock Driver for Raspberry Pi and typically paired with the LED Clock Server
             org.opencontainers.image.source=${{ github.repository }}
-            org.opencontainers.image.version=${{ steps.version.outputs.version }}
+            org.opencontainers.image.version=${{ needs.version-increment.outputs.version }}
             org.opencontainers.image.url=${{ github.repository }}
 
       # Extract metadata (tags, labels) for Server image
@@ -74,14 +81,13 @@ jobs:
             # set latest tag for default branch
             type=raw,value=latest,enable={{is_default_branch}}
             # set version tag for all branches
-            type=raw,value=${{ steps.version.outputs.version }}
+            type=raw,value=${{ needs.version-increment.outputs.version }}
           labels: |
             org.opencontainers.image.title=LED Clock server
             org.opencontainers.image.description=LED Clock Server for Raspberry Pi and typically paired with the LED Clock Driver
             org.opencontainers.image.source=${{ github.repository }}
-            org.opencontainers.image.version=${{ steps.version.outputs.version }}
+            org.opencontainers.image.version=${{ needs.version-increment.outputs.version }}
             org.opencontainers.image.url=${{ github.repository }}
-      
 
       # Build and push the Driver image
       - name: Build and push Driver image
@@ -90,7 +96,7 @@ jobs:
           context: .
           push: true
           file: driver.dockerfile
-          platforms: linux/amd64,linux/arm64
+          platforms: linux/arm64
           tags: ${{ steps.driver-meta.outputs.tags }}
           labels: ${{ steps.driver-meta.outputs.labels }}
           cache-from: type=gha
@@ -103,23 +109,117 @@ jobs:
           context: .
           push: true
           file: server.dockerfile
-          platforms: linux/amd64,linux/arm64
+          platforms: linux/arm64
+          tags: ${{ steps.server-meta.outputs.tags }}
+          labels: ${{ steps.server-meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      
+  build-and-push-amd64-images:
+    runs-on: ubuntu-latest
+    needs: version-increment
+    # Sets the permissions granted to the `GITHUB_TOKEN` for the actions in this job.
+    permissions:
+      contents: write
+      packages: write
+      actions: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      # Uses the `docker/login-action` action to log in to the Container registry registry using the account and password that will publish the packages. Once published, the packages are scoped to the account defined here.
+      - name: Log in to the Container registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # Extract metadata (tags, labels) for Driver image
+      - name: Extract metadata (tags, labels) for Driver image
+        id: driver-meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.DRIVER_IMAGE_NAME }}
+          tags: |
+            # set latest tag for default branch
+            type=raw,value=latest,enable={{is_default_branch}}
+            # set version tag for all branches
+            type=raw,value=${{ needs.version-increment.outputs.version }}
+          labels: |
+            org.opencontainers.image.title=LED Clock driver
+            org.opencontainers.image.description=LED Clock Driver for Raspberry Pi and typically paired with the LED Clock Server
+            org.opencontainers.image.source=${{ github.repository }}
+            org.opencontainers.image.version=${{ needs.version-increment.version.outputs.version }}
+            org.opencontainers.image.url=${{ github.repository }}
+
+      # Extract metadata (tags, labels) for Server image
+      - name: Extract metadata (tags, labels) for Server image
+        id: server-meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.SERVER_IMAGE_NAME }}
+          tags: |
+            # set latest tag for default branch
+            type=raw,value=latest,enable={{is_default_branch}}
+            # set version tag for all branches
+            type=raw,value=${{ needs.version-increment.outputs.version }}
+          labels: |
+            org.opencontainers.image.title=LED Clock server
+            org.opencontainers.image.description=LED Clock Server for Raspberry Pi and typically paired with the LED Clock Driver
+            org.opencontainers.image.source=${{ github.repository }}
+            org.opencontainers.image.version=${{ needs.version-increment.outputs.version }}
+            org.opencontainers.image.url=${{ github.repository }}
+      
+
+      # Build and push the Driver image
+      - name: Build and push Driver image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          file: driver.dockerfile
+          platforms: linux/amd64
+          tags: ${{ steps.driver-meta.outputs.tags }}
+          labels: ${{ steps.driver-meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      
+      # Build and push the Server image
+      - name: Build and push Server image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          file: server.dockerfile
+          platforms: linux/amd64
           tags: ${{ steps.server-meta.outputs.tags }}
           labels: ${{ steps.server-meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
+  # Create Github Release and Trigger Deploy
+  create-release-and-trigger-deploy:
+    runs-on: ubuntu-latest
+    needs: [build-and-push-arm64-images, build-and-push-amd64-images, version-increment]
+    steps:
       # Creates a release in the repository, using the version number that was generated in the "Get next version" step.
       - name: Create a release
         uses: softprops/action-gh-release@v2
         with:
           draft: false
           prerelease: false
-          tag_name: ${{ steps.version.outputs.version }}
+          tag_name: ${{ needs.version-increment.outputs.version }}
 
       # Trigger the deploy-frontend workflow
       - name: Trigger deploy-driver-and-server workflow
         uses: benc-uk/workflow-dispatch@v1
         with:
           workflow: deploy-driver-and-server.yml
-          inputs: '{ "environment": "aurora", "version": "${{ steps.version.outputs.version }}" }'
+          inputs: '{ "environment": "aurora", "version": "${{ needs.version-increment.outputs.version }}" }'
