@@ -55,4 +55,4 @@ COPY --chown=docker:docker pyproject.toml uv.lock ./
 RUN uv sync --frozen
 
 # NOTE: Must run the container with --device /dev/mem so it can access the GPIO pins
-ENTRYPOINT [ "uv", "run", "start_driver" ]
+ENTRYPOINT [ "uv", "run", "python", "-u", "client/main.py" ]

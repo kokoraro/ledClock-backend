@@ -1,6 +1,6 @@
 services:
   driver:
-    image: ghcr.io/danielatanasovski/led-clock-driver:latest
+    image: ghcr.io/danielatanasovski/led-clock-backend-driver:latest
     ports: 
       - "8888:8888"
     restart: always
@@ -11,15 +11,15 @@ services:
       options:
         max-size: "10m"
         max-file: "5"
-      deploy:
-        update_config:
-          parallelism: 2
-          delay: 10s
-          failure_action: rollback
-      # Run privileged mode to access the GPIO pins
-      privileged: true
+    deploy:
+      update_config:
+        parallelism: 2
+        delay: 10s
+        failure_action: rollback
+    # Run privileged mode to access the GPIO pins
+    privileged: true
   server:
-    image: ghcr.io/danielatanasovski/led-clock-server:latest
+    image: ghcr.io/danielatanasovski/led-clock-backend-server:latest
     ports: 
       - "8000:8000"
     restart: always
@@ -30,11 +30,11 @@ services:
       options:
         max-size: "10m"
         max-file: "5"
-      deploy:
-        update_config:
-          parallelism: 2
-          delay: 10s
-          failure_action: rollback
+    deploy:
+      update_config:
+        parallelism: 2
+        delay: 10s
+        failure_action: rollback
 
 networks:
   bridge:
