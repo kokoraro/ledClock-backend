@@ -1,10 +1,13 @@
 services:
   driver:
-    image: ghcr.io/danielatanasovski/led-clock-backend-driver:latest
+    image: led-clock-backend-driver:local
+    build: 
+      context: ../../
+      dockerfile: driver.dockerfile
     ports: 
       - "8888:8888"
+      - "7777:7777"
     restart: always
-    user: root
     networks:
       bridge:
         aliases:
@@ -19,12 +22,15 @@ services:
         parallelism: 2
         delay: 10s
         failure_action: rollback
-    # Run privileged mode to access the GPIO pins
-    privileged: true
-  server:
-    image: ghcr.io/danielatanasovski/led-clock-backend-server:latest
     environment:
-      - DRIVER_URL=driver
+      - LOCAL_DEV=true
+    # # Run privileged mode to access the GPIO pins (not needed for local dev)
+    # privileged: true
+  server:
+    image: led-clock-backend-server:local
+    build: 
+      context: ../../
+      dockerfile: server.dockerfile
     ports: 
       - "8000:8000"
     restart: always
