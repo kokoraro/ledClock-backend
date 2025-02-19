@@ -1,4 +1,5 @@
 import logging
+import os
 import socket
 import json
 import threading
@@ -6,10 +7,11 @@ from typing import Optional
 
 from models.matrix import ActionRequest
 
+DRIVER_HOST = os.getenv("DRIVER_HOST", "0.0.0.0")
+DRIVER_PORT = os.getenv("DRIVER_PORT", 8888)
 
 class DataReceiver(threading.Thread):
-    def __init__(self, host="localhost", port=8888):
-        super().__init__()
+    def __init__(self, host=DRIVER_HOST, port=DRIVER_PORT):
         self.host = host
         self.port = port
         self.data = None
