@@ -16,6 +16,9 @@ import time
 saved_matrices_path = "saved-matrices"
 saved_animations_path = "saved-animations"
 
+DRIVER_URL = os.getenv("DRIVER_URL", "localhost")
+DRIVER_PORT = os.getenv("DRIVER_PORT", 8888)
+
 MAX_LIMIT = 10
 
 lock = Lock()
@@ -33,7 +36,8 @@ class MatrixController:
         # Initialize the pixels
         for x in range(self.canvas.width):
             for y in range(self.canvas.height):
-                self.canvas.pixels.append(Pixel(rgb=[0, 0, 0], position=[x, y]))
+                self.canvas.pixels.append(
+                    Pixel(rgb=[0, 0, 0], position=[x, y]))
 
     # Generate random pixels and set them on the matrix
     def randomize_matrix(self):
@@ -65,7 +69,8 @@ class MatrixController:
         )
 
         if driver_status != 200:
-            raise HTTPException(status_code=500, detail="Error updating matrix")
+            raise HTTPException(
+                status_code=500, detail="Error updating matrix")
 
         return "Successfully randomized matrix", 200
 
@@ -89,7 +94,8 @@ class MatrixController:
             }
         )
         if driver_status != 200:
-            raise HTTPException(status_code=500, detail="Error updating matrix")
+            raise HTTPException(
+                status_code=500, detail="Error updating matrix")
 
         # Log driver speed
         end_time = time.time()
@@ -101,7 +107,8 @@ class MatrixController:
     # Save the matrix to a file with the current date and time as the name
     def save_matrix(self, matrix: list[Pixel]):
         # Get the current date and time as a string
-        current_time: str = time.strftime("%Y-%m-%d-%H-%M-%S", time.localtime())
+        current_time: str = time.strftime(
+            "%Y-%m-%d-%H-%M-%S", time.localtime())
 
         # Check if saved_matrices_path exists, if not create it
         if not os.path.exists(saved_matrices_path):
@@ -127,13 +134,15 @@ class MatrixController:
         )
 
         if driver_status != 200:
-            raise HTTPException(status_code=500, detail="Error updating matrix")
+            raise HTTPException(
+                status_code=500, detail="Error updating matrix")
 
         return "Successfully set animation", 200
 
     def save_animation(self, animation: Animation):
         # Get the current date and time as a string
-        current_time: str = time.strftime("%Y-%m-%d-%H-%M-%S", time.localtime())
+        current_time: str = time.strftime(
+            "%Y-%m-%d-%H-%M-%S", time.localtime())
 
         # Check if animations path exists, if not create it
         if not os.path.exists(saved_animations_path):
@@ -186,7 +195,8 @@ class MatrixController:
         )
 
         if driver_status != 200:
-            raise HTTPException(status_code=500, detail="Error updating matrix")
+            raise HTTPException(
+                status_code=500, detail="Error updating matrix")
 
         return "Successfully Loaded matrix", 200
 
@@ -244,7 +254,7 @@ class MatrixController:
         with lock:
             # Open socket and conenct to server
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-                s.connect(("localhost", 8888))
+                s.connect((DRIVER_URL, DRIVER_PORT))
 
                 # TODO: HAVE SOME LOGIC FOR HANDLING MATRIX VS ANIMATION
                 # ALSO BRIGHTNESS ETC...
