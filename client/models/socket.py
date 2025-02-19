@@ -12,6 +12,7 @@ DRIVER_PORT = os.getenv("DRIVER_PORT", 8888)
 
 class DataReceiver(threading.Thread):
     def __init__(self, host=DRIVER_HOST, port=DRIVER_PORT):
+        super().__init__()
         self.host = host
         self.port = port
         self.data = None
