@@ -35,7 +35,8 @@ def RandomPixelPositions(pixelCount: int, width: int, height: int) -> list[Pixel
     for x in range(pixelCount):
         randomX = random.randrange(width)
         randomY = random.randrange(height)
-        pixelPositions.append(Pixel(rgb=[255, 255, 255], position=[randomX, randomY]))
+        pixelPositions.append(
+            Pixel(rgb=[255, 255, 255], position=[randomX, randomY]))
 
     return pixelPositions
 
@@ -47,7 +48,7 @@ def matrix_init() -> (RGBMatrix, Canvas):
     options.rows = 32
     options.cols = 64
     options.hardware_mapping = "regular"
-    options.show_refresh_rate = True
+    options.show_refresh_rate = False
     options.limit_refresh_rate_hz = 70
     options.gpio_slowdown = 2
     # options.pwm_dither_bits = 1
@@ -122,7 +123,8 @@ def update_action(
     if current_action.get_last_handled_action_request() == json.dumps(request):
         return current_action
 
-    current_action.change_action(action=request["data_type"], data=request["data"])
+    current_action.change_action(
+        action=request["data_type"], data=request["data"])
     current_action.set_last_handled_action_request(json.dumps(request))
 
     return current_action
@@ -141,10 +143,12 @@ def main():
     current_canvas: Optional[PixelCanvas] = PixelCanvas(
         width=64, height=32, brightness=80, pixels=[]
     )
-    previous_canvas = PixelCanvas(width=64, height=32, brightness=80, pixels=[])
+    previous_canvas = PixelCanvas(
+        width=64, height=32, brightness=80, pixels=[])
 
     # Setup current action
-    current_matrix: Matrix = {"pixels": current_canvas.get_pixels(), "brightness": 80}
+    current_matrix: Matrix = {
+        "pixels": current_canvas.get_pixels(), "brightness": 80}
     current_action: CurrentAction = CurrentAction(
         action=DATA_TYPE.MATRIX, data=current_matrix
     )
