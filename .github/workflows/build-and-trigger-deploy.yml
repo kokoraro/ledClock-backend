@@ -29,7 +29,7 @@ jobs:
           scheme: conventional_commits
 
   build-and-push-arm64-images:
-    runs-on: self-hosted
+    runs-on: blacksmith-4vcpu-ubuntu-2204-arm
     needs: version-increment
     permissions:
       contents: write
