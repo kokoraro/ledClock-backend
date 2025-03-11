@@ -203,6 +203,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      actions: write
     needs: [build-and-push-arm64-images, build-and-push-amd64-images, version-increment]
     steps:
       # Creates a release in the repository, using the version number that was generated in the "Get next version" step.
