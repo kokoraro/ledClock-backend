@@ -1,6 +1,19 @@
+name: led-clock-backend
+
 services:
+  init:
+    image: busybox
+    container_name: led-init
+    command: ["sh", "-c", "chmod -R 777 /app/saved-matrices"]
+    volumes:
+      - led-clock-data:/app/saved-matrices
+    networks:
+      - bridge
+
   driver:
     image: led-clock-backend-driver:local
+    container_name: led-driver
+    hostname: led-driver
     build: 
       context: ../../
       dockerfile: driver.dockerfile
@@ -24,10 +37,19 @@ services:
         failure_action: rollback
     environment:
       - LOCAL_DEV=true
+    volumes:
+      - type: volume
+        source: led-clock-data
+        target: /app/saved-matrices
     # # Run privileged mode to access the GPIO pins (not needed for local dev)
     # privileged: true
+
   server:
     image: led-clock-backend-server:local
+    hostname: led-backend
+    environment:
+      - DRIVER_URL=led-driver
+    container_name: led-backend
     build: 
       context: ../../
       dockerfile: server.dockerfile
@@ -48,8 +70,15 @@ services:
         parallelism: 2
         delay: 10s
         failure_action: rollback
+    volumes:
+      - type: volume
+        source: led-clock-data
+        target: /app/saved-matrices
+
+volumes:
+  led-clock-data:
 
 networks:
   bridge:
-    name: led-clock-network
+    name: led-clock-backend
     driver: bridge
