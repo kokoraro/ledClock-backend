@@ -33,15 +33,12 @@ jobs:
           oauth-secret: ${{ secrets.TS_OAUTH_SECRET }}
           tags: tag:ci
 
-      # Deploy to environment through portainer
-      - name: Deploy
-        uses: nvti/portainer-stack-deploy@main
+      # Setup Docker remote Context
+      - uses: alex-ac/github-action-ssh-docker-compose@master
+        name: Docker-Compose Remote Deployment
         with:
-          portainer-host: ${{ secrets.PORTAINER_BASE_URL }}
-          username: ${{ secrets.PORTAINER_USERNAME }}
-          password: ${{ secrets.PORTAINER_PASSWORD }}
-          endpoint-id: ${{ secrets.PORTAINER_ENDPOINT_ID }} # This is the environment to deploy to
-          stack-name: ${{ env.STACK_NAME }}
-          stack-definition: .github/deploy/docker-compose.${{ inputs.environment }}.yml
-          prune-stack: True
-          pull-image: True
+          ssh_host: ${{ secrets.LED_PI_ADDRESS }}
+          ssh_private_key: ${{ secrets.LED_PI_SSH_KEY }}
+          ssh_user: ${{ secrets.LED_PI_USER }}
+          docker_compose_prefix: led-clock-backend
+          docker_compose_filename: .github/deploy/docker-compose.aurora.yml
