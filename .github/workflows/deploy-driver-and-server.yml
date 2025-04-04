@@ -34,7 +34,7 @@ jobs:
           tags: tag:ci
 
       # Setup Docker remote Context
-      - uses: alex-ac/github-action-ssh-docker-compose@master
+      - uses: matiasnu/github-action-ssh-docker-compose@v2.0.3
         name: Docker-Compose Remote Deployment
         with:
           ssh_host: ${{ secrets.LED_PI_ADDRESS }}
